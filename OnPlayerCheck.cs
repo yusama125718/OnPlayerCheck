@@ -23,9 +23,19 @@ public class OnPlayerCheck : UdonSharpBehaviour
         {
             return;
         }
-        if (!Networking.IsOwner(gameObject))
+        for (int i = 0;i < hideobject.Length;i++)
         {
-            Networking.SetOwner(Networking.LocalPlayer, gameObject);
+            if (!Networking.IsOwner(hideobject[i]))
+            {
+                Networking.SetOwner(Networking.LocalPlayer, hideobject);
+            }
+        }
+        for (int i = 0;i < showobject.Length;i++)
+        {
+            if (!Networking.IsOwner(showobject[i]))
+            {
+                Networking.SetOwner(Networking.LocalPlayer, showobject);
+            }
         }
         for (int i=0;i>hideobject.Length;i++)
         {
@@ -47,7 +57,7 @@ public class OnPlayerCheck : UdonSharpBehaviour
 
     public override void OnPlayerTriggerExit(VRCPlayerApi player)
     {
-        stayplayer++;
+        stayplayer--;
         if (stayplayer >= triggercount)
         {
             return;
@@ -72,5 +82,9 @@ public class OnPlayerCheck : UdonSharpBehaviour
             }
             showobject[i].SetActive(true);
         }
+    }
+    public override void OnPlayerJoin(VRCPlayerApi, player)
+    {
+        //ここの処理は帰ってからやる(joinしたときの同期処理)
     }
 }
