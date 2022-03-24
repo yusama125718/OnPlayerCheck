@@ -9,56 +9,17 @@ public class OnPlayerCheck : UdonSharpBehaviour
     [Header("トリガー人数")]
     [SerializeField, Range(0, 100)] private int triggercount;
 
-    [Header("トリガー人数より多いとき表示オブジェクト")]
+    [Header("トリガー人数より多いとき表示するオブジェクト")]
     [SerializeField] private GameObject[] hideobject;
 
     [Header("トリガー人数以下のとき表示するオブジェクト")]
     [SerializeField] private GameObject[] showobject;
 
-    int stayplayer;
-    void OnPlayerTriggerJoin(VRCPlayerApi player)
+    [UdonSynced(UdonSyncMode.None)]private int OPCstayplayer;
+    public override void OnPlayerTriggerEnter(VRCPlayerApi player)
     {
-        stayplayer++;
-        if (stayplayer <= triggercount)
-        {
-            return;
-        }
-        for (int i = 0;i < hideobject.Length;i++)
-        {
-            if (!Networking.IsOwner(hideobject[i]))
-            {
-                Networking.SetOwner(Networking.LocalPlayer, hideobject);
-            }
-        }
-        for (int i = 0;i < showobject.Length;i++)
-        {
-            if (!Networking.IsOwner(showobject[i]))
-            {
-                Networking.SetOwner(Networking.LocalPlayer, showobject);
-            }
-        }
-        for (int i=0;i>hideobject.Length;i++)
-        {
-            if (hideobject[i] = null)
-            {
-                return;
-            }
-            hideobject[i].SetActive(true);
-        }
-        for (int i=0;i>showobject.Length;i++)
-        {
-            if (showobject[i] = null)
-            {
-                return;
-            }
-            showobject[i].SetActive(false);
-        }
-    }
-
-    public override void OnPlayerTriggerExit(VRCPlayerApi player)
-    {
-        stayplayer--;
-        if (stayplayer >= triggercount)
+        OPCstayplayer++;
+        if (OPCstayplayer <= triggercount)
         {
             return;
         }
@@ -66,25 +27,53 @@ public class OnPlayerCheck : UdonSharpBehaviour
         {
             Networking.SetOwner(Networking.LocalPlayer, gameObject);
         }
-        for (int i=0;i>hideobject.Length;i++)
+        for (int i=0;i<hideobject.Length;i++)
         {
-            if (hideobject[i] = null)
+            if (hideobject[i] != null)
             {
-                return;
+                hideobject[i].SetActive(true);
             }
-            hideobject[i].SetActive(false);
         }
-        for (int i=0;i>showobject.Length;i++)
+        for (int i=0;i<showobject.Length;i++)
         {
-            if (showobject[i] = null)
+            if (showobject[i] != null)
             {
-                return;
+                showobject[i].SetActive(false);
             }
-            showobject[i].SetActive(true);
         }
+        RequestSerialization(); 
     }
-    public override void OnPlayerJoin(VRCPlayerApi, player)
+
+    public override void OnPlayerTriggerExit(VRCPlayerApi player)
     {
-        //ここの処理は帰ってからやる(joinしたときの同期処理)
+        OPCstayplayer--;
+        if (OPCstayplayer > triggercount)
+        {
+            return;
+        }
+        if (!Networking.IsOwner(gameObject))
+        {
+            Networking.SetOwner(Networking.LocalPlayer, gameObject);
+        }
+        for (int i=0;i<hideobject.Length;i++)
+        {
+            if (hideobject[i] != null)
+            {
+                hideobject[i].SetActive(false);
+            }
+        }
+        for (int i=0;i<showobject.Length;i++)
+        {
+            if (showobject[i] != null)
+            {
+                showobject[i].SetActive(true);
+            }
+        }
+        RequestSerialization(); 
+    }
+
+    void OnPlayerJoin(VRCPlayerApi player)
+    {
+        RequestSerialization(); 
     }
 }
