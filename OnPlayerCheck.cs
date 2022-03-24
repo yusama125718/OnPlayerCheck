@@ -25,7 +25,7 @@ public class OnPlayerCheck : UdonSharpBehaviour
         }
         if (!Networking.IsOwner(gameObject))
         {
-            Networking.SetOwner(Networking.LocalPlayer, gameObject);
+            Networking.SetOwner(Networking.LocalPlayer, this.gameObject);
         }
         for (int i=0;i<hideobject.Length;i++)
         {
@@ -53,7 +53,7 @@ public class OnPlayerCheck : UdonSharpBehaviour
         }
         if (!Networking.IsOwner(gameObject))
         {
-            Networking.SetOwner(Networking.LocalPlayer, gameObject);
+            Networking.SetOwner(Networking.LocalPlayer, this.gameObject);
         }
         for (int i=0;i<hideobject.Length;i++)
         {
