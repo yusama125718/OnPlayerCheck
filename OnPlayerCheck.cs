@@ -15,65 +15,107 @@ public class OnPlayerCheck : UdonSharpBehaviour
     [Header("トリガー人数以下のとき表示するオブジェクト")]
     [SerializeField] private GameObject[] showobject;
 
-    [UdonSynced(UdonSyncMode.None)]private int OPCstayplayer;
-    public override void OnPlayerTriggerEnter(VRCPlayerApi player)
+    [UdonSynced]private int OPCstayplayer;
+
+    [UdonSynced]private int x = 0;
+
+    async void start()
     {
-        OPCstayplayer++;
         if (OPCstayplayer <= triggercount)
         {
-            return;
+            for (int i = 0;i<showobject.Length;i++)
+            {
+                if (showobject[i] != null)
+                showobject[i].SetActive(true);
+            }
+            for (int i=0;i<hideobject.Length;i++)
+            {
+                if (hideobject[i] != null)
+                hideobject[i].SetActive(false);  
+            }
         }
-        if (!Networking.IsOwner(gameObject))
+        else
         {
-            Networking.SetOwner(Networking.LocalPlayer, this.gameObject);
+            for (int i = 0;i<showobject.Length;i++)
+            {
+                if (showobject[i] != null)
+                showobject[i].SetActive(false);
+            }
+            for (int i=0;i<hideobject.Length;i++)
+            {
+                if (hideobject[i] != null)
+                hideobject[i].SetActive(true);  
+            }
         }
+    }
+
+    public override void OnPlayerTriggerEnter(VRCPlayerApi player)
+    {
+        if (!Networking.IsOwner(gameObject)) return;
+        OPCstayplayer++;
+        RequestSerialization();
+        if (OPCstayplayer <= triggercount) return;
+
         for (int i=0;i<hideobject.Length;i++)
         {
             if (hideobject[i] != null)
             {
-                hideobject[i].SetActive(true);
+                x = i;
+                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "hideobjecttrue");
             }
         }
         for (int i=0;i<showobject.Length;i++)
         {
             if (showobject[i] != null)
             {
-                showobject[i].SetActive(false);
+                x = i;
+                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "showobjectfalse");
             }
         }
-        RequestSerialization(); 
     }
 
     public override void OnPlayerTriggerExit(VRCPlayerApi player)
-    {
+    { 
+        if (!Networking.IsOwner(gameObject)) return;
         OPCstayplayer--;
-        if (OPCstayplayer > triggercount)
-        {
-            return;
-        }
-        if (!Networking.IsOwner(gameObject))
-        {
-            Networking.SetOwner(Networking.LocalPlayer, this.gameObject);
-        }
+        RequestSerialization();
+        if (OPCstayplayer > triggercount) return;
+
         for (int i=0;i<hideobject.Length;i++)
         {
             if (hideobject[i] != null)
             {
-                hideobject[i].SetActive(false);
+                x = i;
+                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "hideobjectfalse");
             }
         }
         for (int i=0;i<showobject.Length;i++)
         {
             if (showobject[i] != null)
             {
-                showobject[i].SetActive(true);
+                x = i;
+                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "showobjecttrue");
             }
         }
-        RequestSerialization(); 
     }
 
-    void OnPlayerJoin(VRCPlayerApi player)
+    public void showobjecttrue()
     {
-        RequestSerialization(); 
+        showobject[x].SetActive(true);
+    }
+
+    public void showobjectfalse()
+    {
+        showobject[x].SetActive(false);     
+    }
+
+    public void hideobjecttrue()
+    {
+        hideobject[x].SetActive(true);
+    }
+
+    public void hideobjectfalse()
+    {
+        hideobject[x].SetActive(false);
     }
 }
