@@ -59,10 +59,10 @@ public class OnPlayerCheck : UdonSharpBehaviour
     {
         if (!Networking.IsOwner(gameObject)) return;
         OPCstayplayer++;
-        RequestSerialization();
         if (OPCstayplayer <= triggercount) return;
         active[0] = false;
         active[1] = true;
+        RequestSerialization();
         for (int i=0;i<hideobject.Length;i++)
         {
             if (hideobject[i] != null)
@@ -85,10 +85,10 @@ public class OnPlayerCheck : UdonSharpBehaviour
     { 
         if (!Networking.IsOwner(gameObject)) return;
         OPCstayplayer--;
-        RequestSerialization();
         if (OPCstayplayer > triggercount) return;
         active[0] = true;
         active[1] = false;
+        RequestSerialization();
         for (int i=0;i<hideobject.Length;i++)
         {
             if (hideobject[i] != null)
