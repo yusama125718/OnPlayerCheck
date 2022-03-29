@@ -18,9 +18,13 @@ public class OnPlayerCheck : UdonSharpBehaviour
     [UdonSynced]private int OPCstayplayer;
 
     [UdonSynced]private int x = 0;
+    
+    [UdonSynced]private bool[] active = new bool[2]
 
     async void start()
     {
+        active[0] = true;
+        active[1] = false;
         if (OPCstayplayer <= triggercount)
         {
             for (int i = 0;i<showobject.Length;i++)
@@ -31,11 +35,13 @@ public class OnPlayerCheck : UdonSharpBehaviour
             for (int i=0;i<hideobject.Length;i++)
             {
                 if (hideobject[i] != null)
-                hideobject[i].SetActive(false);  
+                hideobject[i].SetActive(false); 
             }
         }
         else
         {
+            active[0] = false;
+            active[1] = true;
             for (int i = 0;i<showobject.Length;i++)
             {
                 if (showobject[i] != null)
@@ -55,13 +61,14 @@ public class OnPlayerCheck : UdonSharpBehaviour
         OPCstayplayer++;
         RequestSerialization();
         if (OPCstayplayer <= triggercount) return;
-
+        active[0] = false;
+        active[1] = true;
         for (int i=0;i<hideobject.Length;i++)
         {
             if (hideobject[i] != null)
             {
                 x = i;
-                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "hideobjecttrue");
+                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "hideini");
             }
         }
         for (int i=0;i<showobject.Length;i++)
@@ -69,7 +76,7 @@ public class OnPlayerCheck : UdonSharpBehaviour
             if (showobject[i] != null)
             {
                 x = i;
-                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "showobjectfalse");
+                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "showini");
             }
         }
     }
@@ -80,13 +87,14 @@ public class OnPlayerCheck : UdonSharpBehaviour
         OPCstayplayer--;
         RequestSerialization();
         if (OPCstayplayer > triggercount) return;
-
+        active[0] = true;
+        active[1] = false;
         for (int i=0;i<hideobject.Length;i++)
         {
             if (hideobject[i] != null)
             {
                 x = i;
-                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "hideobjectfalse");
+                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "hideini");
             }
         }
         for (int i=0;i<showobject.Length;i++)
@@ -94,28 +102,18 @@ public class OnPlayerCheck : UdonSharpBehaviour
             if (showobject[i] != null)
             {
                 x = i;
-                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "showobjecttrue");
+                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "showini");
             }
         }
     }
-
-    public void showobjecttrue()
+    
+    public void showini()
     {
-        showobject[x].SetActive(true);
+        showobject[x].SetActive(active[0]);
     }
-
-    public void showobjectfalse()
+    
+    public void hideini()
     {
-        showobject[x].SetActive(false);     
-    }
-
-    public void hideobjecttrue()
-    {
-        hideobject[x].SetActive(true);
-    }
-
-    public void hideobjectfalse()
-    {
-        hideobject[x].SetActive(false);
+        hideobject[x].SetActive(active[1]);
     }
 }
