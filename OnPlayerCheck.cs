@@ -16,12 +16,10 @@ public class OnPlayerCheck : UdonSharpBehaviour
     [SerializeField] private GameObject[] showobject;
 
     [UdonSynced]private int OPCstayplayer;
-
-    [UdonSynced]private int x = 0;
     
-    [UdonSynced]private bool[] active = new bool[2]
+    [UdonSynced]private bool[] active = new bool[2];
 
-    async void start()
+    public void start()
     {
         active[0] = true;
         active[1] = false;
@@ -63,22 +61,7 @@ public class OnPlayerCheck : UdonSharpBehaviour
         active[0] = false;
         active[1] = true;
         RequestSerialization();
-        for (int i=0;i<hideobject.Length;i++)
-        {
-            if (hideobject[i] != null)
-            {
-                x = i;
-                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "hideini");
-            }
-        }
-        for (int i=0;i<showobject.Length;i++)
-        {
-            if (showobject[i] != null)
-            {
-                x = i;
-                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "showini");
-            }
-        }
+        SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "change");
     }
 
     public override void OnPlayerTriggerExit(VRCPlayerApi player)
@@ -89,31 +72,24 @@ public class OnPlayerCheck : UdonSharpBehaviour
         active[0] = true;
         active[1] = false;
         RequestSerialization();
+        SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "change");
+    }
+    
+    public void change()
+    {
+        for (int i = 0;i < showobject.Length;i++)
+        {
+            if (showobject[i] != null)
+            {
+                showobject[i].SetActive(active[0]);
+            }
+        }
         for (int i=0;i<hideobject.Length;i++)
         {
             if (hideobject[i] != null)
             {
-                x = i;
-                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "hideini");
+                hideobject[i].SetActive(active[1]);
             }
         }
-        for (int i=0;i<showobject.Length;i++)
-        {
-            if (showobject[i] != null)
-            {
-                x = i;
-                SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "showini");
-            }
-        }
-    }
-    
-    public void showini()
-    {
-        showobject[x].SetActive(active[0]);
-    }
-    
-    public void hideini()
-    {
-        hideobject[x].SetActive(active[1]);
     }
 }
