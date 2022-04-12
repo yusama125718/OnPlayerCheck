@@ -4,6 +4,7 @@ using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
 
+[UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
 public class OnPlayerCheck : UdonSharpBehaviour
 {
     [Header("トリガー人数")]
@@ -17,78 +18,52 @@ public class OnPlayerCheck : UdonSharpBehaviour
 
     [UdonSynced]private int OPCstayplayer;
     
-    [UdonSynced]private bool[] active = new bool[2];
+    [UdonSynced]private bool active;
 
-    public void start()
+    void start()
     {
-        active[0] = true;
-        active[1] = false;
-        if (OPCstayplayer <= triggercount)
-        {
-            for (int i = 0;i<showobject.Length;i++)
-            {
-                if (showobject[i] != null)
-                showobject[i].SetActive(true);
-            }
-            for (int i=0;i<hideobject.Length;i++)
-            {
-                if (hideobject[i] != null)
-                hideobject[i].SetActive(false); 
-            }
-        }
-        else
-        {
-            active[0] = false;
-            active[1] = true;
-            for (int i = 0;i<showobject.Length;i++)
-            {
-                if (showobject[i] != null)
-                showobject[i].SetActive(false);
-            }
-            for (int i=0;i<hideobject.Length;i++)
-            {
-                if (hideobject[i] != null)
-                hideobject[i].SetActive(true);  
-            }
-        }
+        active = true;
     }
 
-    public override void OnPlayerTriggerEnter(VRCPlayerApi player)
+    void OnPlayerJoin(VRCPlayerApi player){
+        RequestSerialization();
+        SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "OPCchange");
+    }
+
+    void OnPlayerTriggerEnter(VRCPlayerApi player)
     {
-        if (!Networking.IsOwner(gameObject)) return;
+        if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
         OPCstayplayer++;
         if (OPCstayplayer <= triggercount) return;
-        active[0] = false;
-        active[1] = true;
+        active = false;
         RequestSerialization();
-        SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "change");
+        SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "OPCchange");
     }
 
-    public override void OnPlayerTriggerExit(VRCPlayerApi player)
+    void OnPlayerTriggerExit(VRCPlayerApi player)
     { 
-        if (!Networking.IsOwner(gameObject)) return;
+        if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
         OPCstayplayer--;
         if (OPCstayplayer > triggercount) return;
-        active[0] = true;
-        active[1] = false;
+        active = true;
         RequestSerialization();
-        SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "change");
+        SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "OPCchange");
     }
     
-    public void change()
+    public void OPCchange()
     {
         for (int i = 0;i < showobject.Length;i++)
         {
             if (showobject[i] != null)
             {
-                showobject[i].SetActive(active[0]);
+                showobject[i].SetActive(active);
             }
         }
         for (int i=0;i<hideobject.Length;i++)
         {
             if (hideobject[i] != null)
             {
-                hideobject[i].SetActive(active[1]);
+                hideobject[i].SetActive(!active);
             }
         }
     }
